@@ -12,7 +12,7 @@ const RecordSchema = z.object({
 export async function GET(request: NextRequest) {
 	try {
 		const result = await googleSheetsClient.spreadsheets.values.get({
-			spreadsheetId: "1MI2rE8SnRt1TpZmepBvnLSfk2n_eEUWsgyhsEDWfqvw",
+			spreadsheetId: process.env.ATTENDANCE_SPREADSHEET_ID!,
 			range: "A:D",
 		});
 		if (!result.data.values) {
