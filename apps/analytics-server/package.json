@@ -1,9 +1,0 @@
-{
-    "name": "@app/analytics-server",
-    "private": true,
-
-    "scripts": {
-        "dev": "fastapi dev main.py",
-        "start": "fastapi run main.py"
-    }
-}
