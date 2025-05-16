@@ -1,4 +1,4 @@
-import { googleSheetsClient } from "@/lib/google";
+import { getGoogleSheetsClient } from "@/lib/google";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -9,12 +9,20 @@ const RecordSchema = z.object({
 	isCheckingIn: z.coerce.boolean(),
 });
 
+async function getSpreadsheetData() {
+	if (!process.env.ATTENDANCE_SPREADSHEET_ID) {
+		throw new Error("ATTENDANCE_SPREADSHEET_ID is not set");
+	}
+	const sheetsClient = getGoogleSheetsClient();
+	return await sheetsClient.spreadsheets.values.get({
+		spreadsheetId: process.env.ATTENDANCE_SPREADSHEET_ID,
+		range: "A:D",
+	});
+}
+
 export async function GET() {
 	try {
-		const result = await googleSheetsClient.spreadsheets.values.get({
-			spreadsheetId: process.env.ATTENDANCE_SPREADSHEET_ID!,
-			range: "A:D",
-		});
+		const result = await getSpreadsheetData();
 		if (!result.data.values) {
 			return NextResponse.json({ error: "No data found" });
 		}
