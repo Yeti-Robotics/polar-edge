@@ -1,2 +1,0 @@
-fastapi[standard]==0.115.8
-numpy==2.2.2
