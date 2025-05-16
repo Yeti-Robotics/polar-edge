@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import { googleSheetsClient } from "@/lib/google";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const RecordSchema = z.object({
@@ -9,7 +9,7 @@ const RecordSchema = z.object({
 	isCheckingIn: z.coerce.boolean(),
 });
 
-export async function GET(request: NextRequest) {
+export async function GET() {
 	try {
 		const result = await googleSheetsClient.spreadsheets.values.get({
 			spreadsheetId: process.env.ATTENDANCE_SPREADSHEET_ID!,

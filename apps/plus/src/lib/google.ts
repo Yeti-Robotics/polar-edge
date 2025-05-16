@@ -1,9 +1,7 @@
 import { google } from "googleapis";
 
 const credentials = JSON.parse(
-	Buffer.from(process.env.GOOGLE_APPLICATION_CREDENTIALS!, "base64").toString(
-		"utf-8"
-	)
+	Buffer.from(process.env.GOOGLE_CREDENTIALS!, "base64").toString("utf-8")
 );
 
 const auth = new google.auth.GoogleAuth({
