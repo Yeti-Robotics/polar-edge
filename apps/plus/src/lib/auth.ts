@@ -43,7 +43,6 @@ const config = NextAuth({
 			clientSecret: process.env.AUTH_DISCORD_SECRET!,
 			authorization: `https://discord.com/api/oauth2/authorize?scope=${scopes.join("+")}`,
 			profile: async (discordProfile, token) => {
-				console.log(discordProfile, token);
 				if (!token.access_token) {
 					throw new AuthError("Access token null or undefined");
 				}

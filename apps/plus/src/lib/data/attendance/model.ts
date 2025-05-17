@@ -1,19 +1,26 @@
 import { z } from "zod";
 
 export const AttendanceRecordSchema = z.object({
-	discordId: z.string(),
+	discordId: z.coerce.number(),
 	name: z.string(),
 	timestamp: z.string().refine(
 		(val) => {
 			const date = new Date(val);
-			console.log(date);
 			return !isNaN(date.getTime());
 		},
 		{
 			message: "Invalid date format",
 		}
 	),
-	isCheckingIn: z.coerce.boolean(),
+	isCheckingIn: z
+		.string()
+		.or(z.boolean())
+		.transform((val) => {
+			if (typeof val === "string") {
+				return val.toLowerCase() === "true";
+			}
+			return val;
+		}),
 });
 
 export type AttendanceRecord = z.infer<typeof AttendanceRecordSchema>;

@@ -1,4 +1,4 @@
-import { submitAttendance } from "./actions";
+import { userCheckIn, userCheckOut } from "./actions";
 import { signInAction } from "./actions";
 import { Clock } from "./components/clock";
 
@@ -43,34 +43,16 @@ export default async function Home() {
 						<Clock />
 					</div>
 
-					<form action={submitAttendance} className="space-y-4">
-						<input
-							type="hidden"
-							name="discordId"
-							value={session.user.id}
-						/>
-						<input
-							type="hidden"
-							name="name"
-							value={session.user.name || ""}
-						/>
-
-						<div className="grid grid-cols-2 gap-4">
-							<Button
-								type="submit"
-								className="rounded-lg bg-green-600 px-6 py-4 text-white transition-all hover:bg-green-700"
-							>
-								Clock In
-							</Button>
-
-							<Button
-								type="submit"
-								className="rounded-lg bg-red-600 px-6 py-4 text-white transition-all hover:bg-red-700"
-							>
+					<div className="flex w-full justify-center gap-4">
+						<form action={userCheckIn} className="space-y-4">
+							<Button type="submit">Clock In</Button>
+						</form>
+						<form action={userCheckOut}>
+							<Button variant="destructive" type="submit">
 								Clock Out
 							</Button>
-						</div>
-					</form>
+						</form>
+					</div>
 				</div>
 			</div>
 		</main>

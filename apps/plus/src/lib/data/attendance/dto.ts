@@ -1,6 +1,13 @@
-import { getAttendanceData } from "@/lib/data/attendance/dal";
+import "server-only";
 
-export const getUserAttendance = async (discordId: string) => {
-	const data = await getAttendanceData();
-	return data.filter((record) => record.discordId === discordId);
+import { getUserAttendanceData } from "@/lib/data/attendance/dal";
+
+export const getUserAttendance = async () => {
+	const data = await getUserAttendanceData();
+	return data
+		.map((record) => ({
+			timestamp: record.timestamp,
+			isCheckingIn: record.isCheckingIn,
+		}))
+		.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 };

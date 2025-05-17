@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const RecordSchema = z.object({
-	discordId: z.string(),
+	discordId: z.coerce.number(),
 	name: z.string(),
 	timestamp: z.coerce.date(),
 	isCheckingIn: z.coerce.boolean(),
@@ -40,7 +40,6 @@ export async function GET() {
 				error: "No column index mapping found",
 			});
 		}
-		console.log(columnIndexMapping);
 		const records = result.data.values?.slice(1).map((value) => {
 			return RecordSchema.parse({
 				discordId: value[columnIndexMapping.discordId],
