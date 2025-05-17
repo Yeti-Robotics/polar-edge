@@ -13,7 +13,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body className={`${libreFranklin.variable} antialiased`}>
+			<body className={`${libreFranklin.variable} font-sans antialiased`}>
 				{children}
 			</body>
 		</html>
