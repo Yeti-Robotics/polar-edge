@@ -7,7 +7,6 @@
 	"scripts": {
 		"dev": "tsup --watch",
 		"build": "tsup",
-		"test": "jest",
 		"lint": "eslint src --ext .ts"
 	},
 	"keywords": [
