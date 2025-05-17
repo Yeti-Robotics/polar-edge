@@ -33,7 +33,7 @@ export const userCheckIn = async () => {
 		);
 
 		await writeAttendanceData({
-			discordId: parseInt(session.user.id),
+			discordId: session.user.id,
 			name: session.user.name,
 			timestamp: dateToFormattedString(checkOutTime),
 			isCheckingIn: false,
@@ -41,7 +41,7 @@ export const userCheckIn = async () => {
 	}
 
 	await writeAttendanceData({
-		discordId: parseInt(session.user.id),
+		discordId: session.user.id,
 		name: session.user.name,
 		timestamp: dateToFormattedString(new Date()),
 		isCheckingIn: true,
@@ -61,21 +61,19 @@ export const userCheckOut = async () => {
 	const lastRecord = data[data.length - 1];
 	const currentTime = new Date();
 
-	console.log(lastRecord);
-
 	if (lastRecord && !lastRecord.isCheckingIn) {
 		const inferredCheckInTime = new Date(
 			currentTime.getTime() - 3 * 60 * 60 * 1000
 		);
 		await writeAttendanceData({
-			discordId: parseInt(session.user.id),
+			discordId: session.user.id,
 			name: session.user.name,
 			timestamp: dateToFormattedString(inferredCheckInTime),
 			isCheckingIn: true,
 		});
 	}
 	await writeAttendanceData({
-		discordId: parseInt(session.user.id),
+		discordId: session.user.id,
 		name: session.user.name,
 		timestamp: dateToFormattedString(currentTime),
 		isCheckingIn: false,

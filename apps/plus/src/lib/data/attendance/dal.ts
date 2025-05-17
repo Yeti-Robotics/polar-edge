@@ -60,5 +60,4 @@ export const writeAttendanceData = async (data: AttendanceRecord) => {
 	const client = getAttendanceClient();
 	await client.write(AttendanceRecordSchema, data);
 	revalidateTag("attendance-data");
-	console.log("revalidated attendance-data");
 };

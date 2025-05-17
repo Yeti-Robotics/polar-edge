@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const AttendanceRecordSchema = z.object({
-	discordId: z.coerce.number(),
+	discordId: z.string(),
 	name: z.string(),
 	timestamp: z.string().refine(
 		(val) => {

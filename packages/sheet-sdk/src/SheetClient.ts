@@ -28,7 +28,6 @@ export class SheetClient {
 			const values = response.data.values || [];
 			const headers = values[0] || [];
 			const rows = values.slice(1);
-			console.log(rows);
 
 			const validRows: z.infer<T>[] = [];
 
