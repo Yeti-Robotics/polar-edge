@@ -20,7 +20,7 @@ export function Clock() {
 	return (
 		<div className="text-center">
 			<div className="mb-2 font-mono text-6xl font-bold text-white">
-				{hours}:{minutes}:{seconds}
+				{hours}:{minutes}
 			</div>
 			<div className="font-medium text-gray-400">
 				{time.toLocaleDateString("en-US", {

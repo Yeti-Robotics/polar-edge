@@ -1,60 +1,62 @@
-import { userCheckIn, userCheckOut } from "./actions";
-import { signInAction } from "./actions";
-import { Clock } from "./components/clock";
-
+import {
+	CheckInButton,
+	CheckOutButton,
+} from "@/components/attendance/attendance-buttons";
 import { auth } from "@/lib/auth";
-import { Button } from "@repo/ui/components/button";
+import { getUserAttendance } from "@/lib/data/attendance";
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle,
+} from "@repo/ui/components/card";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
 	const session = await auth();
 	if (!session) {
-		return (
-			<main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
-				<div className="rounded-2xl bg-white/10 p-8 shadow-xl backdrop-blur-lg">
-					<h1 className="mb-6 text-center text-3xl font-bold text-white">
-						Welcome to Attendance Tracker
-					</h1>
-					<form action={signInAction}>
-						<Button
-							type="submit"
-							className="w-full rounded-lg bg-indigo-600 px-6 py-3 text-white transition-all hover:bg-indigo-700"
-						>
-							Sign in with Discord
-						</Button>
-					</form>
-				</div>
-			</main>
-		);
+		redirect("/api/auth/signin");
+	}
+
+	const time = new Date();
+
+	const attendance = await getUserAttendance();
+
+	const isClockedIn =
+		attendance && attendance.attendanceRecords.at(-1)?.isCheckingIn;
+
+	let greeting = "Good morning";
+
+	if (time.getHours() < 12) {
+		greeting = "Good morning";
+	} else if (time.getHours() < 18) {
+		greeting = "Good afternoon";
+	} else {
+		greeting = "Good evening";
 	}
 
 	return (
-		<main className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-8">
-			<div className="mx-auto max-w-2xl">
-				<div className="rounded-2xl bg-white/10 p-8 shadow-xl backdrop-blur-lg">
-					<h1 className="mb-2 text-3xl font-bold text-white">
-						Welcome back,{" "}
-						{session.user.name?.split(" ")[0] || "there"}!
-					</h1>
-					<p className="mb-8 text-gray-300">
-						Track your attendance with ease
-					</p>
-
-					<div className="mb-8">
-						<Clock />
-					</div>
-
-					<div className="flex w-full justify-center gap-4">
-						<form action={userCheckIn} className="space-y-4">
-							<Button type="submit">Clock In</Button>
-						</form>
-						<form action={userCheckOut}>
-							<Button variant="destructive" type="submit">
-								Clock Out
-							</Button>
-						</form>
-					</div>
+		<main className="container mx-auto flex max-w-sm flex-col gap-4">
+			<section>
+				<Card className="gap-0 space-y-0">
+					<CardHeader>
+						<CardTitle className="text-lg font-medium">
+							{greeting}, {session.user.name?.split(" ")[0]}
+						</CardTitle>
+					</CardHeader>
+					<CardContent className="text-muted-foreground py-0 text-sm">
+						<p>
+							You are currently clocked{" "}
+							{isClockedIn ? "in" : "out"}.
+						</p>
+					</CardContent>
+				</Card>
+			</section>
+			<section className="flex flex-col gap-2">
+				<div className="flex w-full justify-center gap-2">
+					{isClockedIn ? <CheckOutButton /> : <CheckInButton />}
 				</div>
-			</div>
+			</section>
 		</main>
 	);
 }

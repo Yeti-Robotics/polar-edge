@@ -1,3 +1,4 @@
+import { SiteNavigation } from "@/components/layout/navigation";
 import { Libre_Franklin } from "next/font/google";
 import "@repo/ui/globals.css";
 
@@ -13,7 +14,10 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body className={`${libreFranklin.variable} font-sans antialiased`}>
+			<body
+				className={`${libreFranklin.variable} dark font-sans antialiased`}
+			>
+				<SiteNavigation />
 				{children}
 			</body>
 		</html>
