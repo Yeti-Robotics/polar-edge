@@ -32,7 +32,6 @@ export class UserAttendance {
 	get hours() {
 		// attempt to reduce into an hour total
 		// if duplicate check in/out, throw an error
-		console.log(this.records);
 		return this.records.reduce<{ in: null | Date; hours: number }>(
 			(acc, curr) => {
 				if (curr.isCheckingIn && !acc.in) {

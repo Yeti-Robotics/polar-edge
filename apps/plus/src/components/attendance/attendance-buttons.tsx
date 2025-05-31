@@ -7,8 +7,7 @@ import {
 } from "@/lib/data/attendance/actions";
 import { Button } from "@repo/ui/components/button";
 import { LogInIcon, LogOutIcon } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
-import { createContext, useContext } from "react";
+import { createContext, useActionState, useContext } from "react";
 
 const AttendanceButtonContext = createContext<{
 	isPending: boolean;
@@ -25,10 +24,10 @@ function AttendanceButton({
 	variant: React.ComponentProps<typeof Button>["variant"];
 	children: React.ReactNode;
 }) {
-	const { execute, isExecuting } = useAction(action);
+	const [, formAction, isPending] = useActionState(action, null);
 
 	return (
-		<AttendanceButtonContext.Provider value={{ isPending: isExecuting }}>
+		<AttendanceButtonContext.Provider value={{ isPending }}>
 			<form className="w-full" action={formAction}>
 				<Button
 					variant={variant}
