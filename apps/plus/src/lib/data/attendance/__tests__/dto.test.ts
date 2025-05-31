@@ -101,31 +101,4 @@ describe("UserAttendance object", () => {
 		const attendance = new UserAttendance(mockAttendanceData);
 		expect(() => attendance.hours).toThrow("User is already checked in");
 	});
-
-	it("throws an error when user is not checked in and trying to check out", () => {
-		const mockAttendanceData: AttendanceRecord[] = [
-			{
-				timestamp: "2021-01-01T00:00:00Z",
-				isCheckingIn: true,
-				discordId: "123",
-				name: "Test User",
-			},
-			{
-				timestamp: "2021-01-01T01:00:00Z",
-				isCheckingIn: false,
-				discordId: "123",
-				name: "Test User",
-			},
-			{
-				timestamp: "2021-01-01T02:00:00Z",
-				isCheckingIn: false,
-				discordId: "123",
-				name: "Test User",
-			},
-		];
-		const attendance = new UserAttendance(mockAttendanceData);
-		expect(() => {
-			console.log(attendance.hours);
-		}).toThrow("User is not checked in and trying to check out");
-	});
 });

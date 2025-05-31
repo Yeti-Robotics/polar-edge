@@ -36,7 +36,7 @@ export default async function Home() {
 							<p className="flex items-center gap-2">
 								Total hours:
 								<span className="text-base font-bold">
-									{attendance?.hours.toPrecision(3)}
+									{attendance?.hours.toFixed(1)}
 								</span>
 							</p>
 						</div>

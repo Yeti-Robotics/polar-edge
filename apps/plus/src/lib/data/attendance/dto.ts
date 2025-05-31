@@ -1,7 +1,6 @@
 import "server-only";
 
 import { AttendanceRecord } from "./model";
-import { getEasternDateObject } from "./utils";
 
 import { getUserAttendanceData } from "@/lib/data/attendance/dal";
 import { cache } from "react";
@@ -30,19 +29,43 @@ export class UserAttendance {
 		);
 	}
 
+	/**
+	 * Checks if the user is checked in
+	 * @returns true if the user is checked in, false otherwise
+	 */
+	public get isCheckedIn() {
+		const lastRecord = this.records[this.records.length - 1];
+		if (lastRecord && lastRecord.isCheckingIn) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Checks if the user is checked out
+	 * @returns true if the user is checked out, false otherwise
+	 */
+	public get isCheckedOut() {
+		const lastRecord = this.records[this.records.length - 1];
+		if (lastRecord && !lastRecord.isCheckingIn) {
+			return true;
+		}
+		return false;
+	}
+
 	get hours() {
 		// attempt to reduce into an hour total
 		// if duplicate check in/out, throw an error
 		return this.records.reduce<{ in: null | Date; hours: number }>(
 			(acc, curr) => {
 				if (curr.isCheckingIn && !acc.in) {
-					acc.in = getEasternDateObject(new Date(curr.timestamp));
+					acc.in = new Date(curr.timestamp);
 				} else if (curr.isCheckingIn && acc.in) {
 					throw new Error("User is already checked in");
 				} else if (!curr.isCheckingIn && acc.in) {
 					acc.hours += this.calculateHourDifference(
 						acc.in,
-						getEasternDateObject(new Date(curr.timestamp))
+						new Date(curr.timestamp)
 					);
 					acc.in = null;
 				} else {

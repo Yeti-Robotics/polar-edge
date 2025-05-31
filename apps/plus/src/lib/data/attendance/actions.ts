@@ -2,7 +2,6 @@
 
 import { writeAttendanceData } from "./dal";
 import { getUserAttendance } from "./dto";
-import { dateToEasternDateString, getEasternDateObject } from "./utils";
 
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
@@ -17,48 +16,24 @@ export type AttendanceActionState =
 	  };
 
 export const userCheckIn = async (): Promise<AttendanceActionState> => {
-	const data = await getUserAttendance();
-	if (!data) {
+	const userAttendance = await getUserAttendance();
+	if (!userAttendance) {
 		return {
 			success: false,
 			error: "Failed to retrieve attendance data.",
 		};
 	}
-	const lastRecord =
-		data.attendanceRecords[data.attendanceRecords.length - 1];
 
-	if (lastRecord && lastRecord.isCheckingIn) {
-		const lastCheckInTime = getEasternDateObject(
-			new Date(lastRecord.timestamp)
-		);
-		const checkOutTime = new Date(
-			lastCheckInTime.getTime() + 3 * 60 * 60 * 1000
-		);
-
-		if (checkOutTime > new Date()) {
-			return {
-				success: false,
-				error: "You are already checked in for this meeting.",
-			};
-		}
-
-		try {
-			await writeAttendanceData({
-				timestamp: dateToEasternDateString(checkOutTime),
-				isCheckingIn: false,
-			});
-		} catch (err) {
-			console.error(err);
-			return {
-				success: false,
-				error: "Failed trying to retroactively check out.",
-			};
-		}
+	if (userAttendance.isCheckedIn) {
+		return {
+			success: false,
+			error: "You are already checked in.",
+		};
 	}
 
 	try {
 		await writeAttendanceData({
-			timestamp: dateToEasternDateString(new Date()),
+			timestamp: new Date().toISOString(),
 			isCheckingIn: true,
 		});
 		revalidatePath("/");
@@ -93,26 +68,15 @@ export const userCheckOut = async (): Promise<AttendanceActionState> => {
 
 	const lastRecord =
 		data.attendanceRecords[data.attendanceRecords.length - 1];
-	const currentTime = getEasternDateObject(new Date());
+	const currentTime = new Date();
 
 	if (lastRecord && !lastRecord.isCheckingIn) {
-		const inferredCheckInTime = new Date(
-			currentTime.getTime() - 1.5 * 60 * 60 * 1000 // half credit for the meeting
-		);
-		if (inferredCheckInTime < new Date(lastRecord.timestamp)) {
-			return {
-				success: false,
-				error: "You are already checked out for this meeting.",
-			};
-		}
-		await writeAttendanceData({
-			timestamp: dateToEasternDateString(inferredCheckInTime),
-			isCheckingIn: true,
-		});
+		throw new Error("User is not checked in.");
 	}
+
 	try {
 		await writeAttendanceData({
-			timestamp: dateToEasternDateString(currentTime),
+			timestamp: currentTime.toISOString(),
 			isCheckingIn: false,
 		});
 		revalidatePath("/");
