@@ -7,7 +7,8 @@ import {
 } from "@/lib/data/attendance/actions";
 import { Button } from "@repo/ui/components/button";
 import { LogInIcon, LogOutIcon } from "lucide-react";
-import { createContext, useActionState, useContext } from "react";
+import { useAction } from "next-safe-action/hooks";
+import { createContext, useContext } from "react";
 
 const AttendanceButtonContext = createContext<{
 	isPending: boolean;
@@ -24,16 +25,16 @@ function AttendanceButton({
 	variant: React.ComponentProps<typeof Button>["variant"];
 	children: React.ReactNode;
 }) {
-	const [, formAction, isPending] = useActionState(action, null);
+	const { execute, isExecuting } = useAction(action);
 
 	return (
-		<AttendanceButtonContext.Provider value={{ isPending }}>
-			<form action={formAction}>
+		<AttendanceButtonContext.Provider value={{ isPending: isExecuting }}>
+			<form className="w-full" action={formAction}>
 				<Button
 					variant={variant}
 					type="submit"
 					disabled={isPending}
-					className="size-32 cursor-pointer flex-col rounded-full text-lg font-medium"
+					className="w-full cursor-pointer text-base"
 				>
 					{children}
 				</Button>
@@ -46,7 +47,7 @@ export const CheckInButton = () => {
 	const { isPending } = useContext(AttendanceButtonContext);
 	return (
 		<AttendanceButton action={userCheckIn} variant="default">
-			<LogInIcon className="size-8" />
+			<LogInIcon />
 			{isPending ? "Checking in..." : "Clock in"}
 		</AttendanceButton>
 	);
@@ -56,7 +57,7 @@ export const CheckOutButton = () => {
 	const { isPending } = useContext(AttendanceButtonContext);
 	return (
 		<AttendanceButton action={userCheckOut} variant="secondary">
-			<LogOutIcon className="size-12" />
+			<LogOutIcon />
 			{isPending ? "Checking out..." : "Clock out"}
 		</AttendanceButton>
 	);

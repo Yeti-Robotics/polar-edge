@@ -2,14 +2,10 @@ import {
 	CheckInButton,
 	CheckOutButton,
 } from "@/components/attendance/attendance-buttons";
+import { Clock } from "@/components/clock";
 import { auth } from "@/lib/auth";
 import { getUserAttendance } from "@/lib/data/attendance";
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle,
-} from "@repo/ui/components/card";
+import { Card, CardContent } from "@repo/ui/components/card";
 import { redirect } from "next/navigation";
 
 export default async function Home() {
@@ -18,37 +14,32 @@ export default async function Home() {
 		redirect("/api/auth/signin");
 	}
 
-	const time = new Date();
-
 	const attendance = await getUserAttendance();
 
 	const isClockedIn =
 		attendance && attendance.attendanceRecords.at(-1)?.isCheckingIn;
 
-	let greeting = "Good morning";
-
-	if (time.getHours() < 12) {
-		greeting = "Good morning";
-	} else if (time.getHours() < 18) {
-		greeting = "Good afternoon";
-	} else {
-		greeting = "Good evening";
-	}
-
 	return (
 		<main className="container mx-auto flex max-w-sm flex-col gap-4">
 			<section>
-				<Card className="gap-0 space-y-0">
-					<CardHeader>
-						<CardTitle className="text-lg font-medium">
-							{greeting}, {session.user.name?.split(" ")[0]}
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="text-muted-foreground py-0 text-sm">
-						<p>
-							You are currently clocked{" "}
-							{isClockedIn ? "in" : "out"}.
-						</p>
+				<Card className="bg-yeti-950 gap-0 space-y-0 p-0">
+					<CardContent className="p-0 text-sm">
+						<div className="flex justify-center px-4 py-2">
+							<span className="bg-yeti-900 rounded-full px-2 py-1 text-xs font-medium">
+								{isClockedIn ? "Clocked in" : "Clocked out"}
+							</span>
+						</div>
+						<div className="flex justify-center pb-4 pt-2">
+							<Clock />
+						</div>
+						<div className="bg-yeti-900 flex flex-col gap-2 rounded-b-lg px-4 py-2 text-white">
+							<p className="flex items-center gap-2">
+								Total hours:
+								<span className="text-base font-bold">
+									{attendance?.hours.toPrecision(3)}
+								</span>
+							</p>
+						</div>
 					</CardContent>
 				</Card>
 			</section>

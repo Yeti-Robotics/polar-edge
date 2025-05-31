@@ -51,6 +51,7 @@ export const userCheckIn = async (): Promise<AttendanceActionState> => {
 		}
 
 		try {
+			console.log("=== writing retroactive check out ===");
 			await writeAttendanceData({
 				timestamp: dateToFormattedString(checkOutTime),
 				isCheckingIn: false,
@@ -65,6 +66,8 @@ export const userCheckIn = async (): Promise<AttendanceActionState> => {
 	}
 
 	try {
+		console.log("=== writing check in ===");
+		console.log(dateToFormattedString(new Date()));
 		await writeAttendanceData({
 			timestamp: dateToFormattedString(new Date()),
 			isCheckingIn: true,
