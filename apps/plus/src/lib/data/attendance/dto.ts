@@ -1,6 +1,7 @@
 import "server-only";
 
 import { AttendanceRecord } from "./model";
+import { getEasternDateObject } from "./utils";
 
 import { getUserAttendanceData } from "@/lib/data/attendance/dal";
 import { cache } from "react";
@@ -35,13 +36,13 @@ export class UserAttendance {
 		return this.records.reduce<{ in: null | Date; hours: number }>(
 			(acc, curr) => {
 				if (curr.isCheckingIn && !acc.in) {
-					acc.in = new Date(curr.timestamp);
+					acc.in = getEasternDateObject(new Date(curr.timestamp));
 				} else if (curr.isCheckingIn && acc.in) {
 					throw new Error("User is already checked in");
 				} else if (!curr.isCheckingIn && acc.in) {
 					acc.hours += this.calculateHourDifference(
 						acc.in,
-						new Date(curr.timestamp)
+						getEasternDateObject(new Date(curr.timestamp))
 					);
 					acc.in = null;
 				} else {

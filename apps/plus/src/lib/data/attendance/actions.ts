@@ -2,20 +2,10 @@
 
 import { writeAttendanceData } from "./dal";
 import { getUserAttendance } from "./dto";
+import { dateToEasternDateString, getEasternDateObject } from "./utils";
 
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-
-function dateToFormattedString(date: Date) {
-	return date.toLocaleString("en-US", {
-		month: "2-digit",
-		day: "2-digit",
-		year: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-		second: "2-digit",
-	});
-}
 
 export type AttendanceActionState =
 	| {
@@ -38,7 +28,9 @@ export const userCheckIn = async (): Promise<AttendanceActionState> => {
 		data.attendanceRecords[data.attendanceRecords.length - 1];
 
 	if (lastRecord && lastRecord.isCheckingIn) {
-		const lastCheckInTime = new Date(lastRecord.timestamp);
+		const lastCheckInTime = getEasternDateObject(
+			new Date(lastRecord.timestamp)
+		);
 		const checkOutTime = new Date(
 			lastCheckInTime.getTime() + 3 * 60 * 60 * 1000
 		);
@@ -52,7 +44,7 @@ export const userCheckIn = async (): Promise<AttendanceActionState> => {
 
 		try {
 			await writeAttendanceData({
-				timestamp: dateToFormattedString(checkOutTime),
+				timestamp: dateToEasternDateString(checkOutTime),
 				isCheckingIn: false,
 			});
 		} catch (err) {
@@ -66,7 +58,7 @@ export const userCheckIn = async (): Promise<AttendanceActionState> => {
 
 	try {
 		await writeAttendanceData({
-			timestamp: dateToFormattedString(new Date()),
+			timestamp: dateToEasternDateString(new Date()),
 			isCheckingIn: true,
 		});
 		revalidatePath("/");
@@ -101,7 +93,7 @@ export const userCheckOut = async (): Promise<AttendanceActionState> => {
 
 	const lastRecord =
 		data.attendanceRecords[data.attendanceRecords.length - 1];
-	const currentTime = new Date();
+	const currentTime = getEasternDateObject(new Date());
 
 	if (lastRecord && !lastRecord.isCheckingIn) {
 		const inferredCheckInTime = new Date(
@@ -114,13 +106,13 @@ export const userCheckOut = async (): Promise<AttendanceActionState> => {
 			};
 		}
 		await writeAttendanceData({
-			timestamp: dateToFormattedString(inferredCheckInTime),
+			timestamp: dateToEasternDateString(inferredCheckInTime),
 			isCheckingIn: true,
 		});
 	}
 	try {
 		await writeAttendanceData({
-			timestamp: dateToFormattedString(currentTime),
+			timestamp: dateToEasternDateString(currentTime),
 			isCheckingIn: false,
 		});
 		revalidatePath("/");
