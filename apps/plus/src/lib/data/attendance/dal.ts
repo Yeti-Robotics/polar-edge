@@ -64,7 +64,6 @@ export const writeAttendanceData = async (
 		throw new Error("Unauthorized");
 	}
 	const client = getAttendanceClient();
-	console.log({ data });
 	await client.write(AttendanceRecordSchema, {
 		...data,
 		name: session.user.name,

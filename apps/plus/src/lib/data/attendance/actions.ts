@@ -80,7 +80,6 @@ export async function checkOutUser(): Promise<AttendanceActionState> {
 			timestamp: retroactiveCheckInTimestamp.toISOString(),
 			isCheckingIn: true,
 		});
-		console.log("=== wrote retroactive check in");
 	} else if (!lastRecord) {
 		const retroactiveCheckInTimestamp = new Date(
 			new Date().getTime() - 1.5 * 60 * 60 * 1000

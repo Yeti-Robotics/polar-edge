@@ -10,7 +10,6 @@ export const CheckInButton = () => {
 	const [state, formAction, isPending] = useActionState(checkInUser, null);
 
 	useEffect(() => {
-		console.log("state", state);
 		if (state?.success && state.message) {
 			toast({
 				variant: state.success ? "default" : "destructive",
@@ -33,9 +32,7 @@ export const CheckOutButton = () => {
 	const [state, formAction, isPending] = useActionState(checkOutUser, null);
 
 	useEffect(() => {
-		console.log("state out", state);
 		if (state?.message) {
-			console.log("toast");
 			toast({
 				variant: state.success ? "default" : "destructive",
 				description: state.message,
