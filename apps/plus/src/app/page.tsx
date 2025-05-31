@@ -1,60 +1,53 @@
-import { userCheckIn, userCheckOut } from "./actions";
-import { signInAction } from "./actions";
-import { Clock } from "./components/clock";
-
+import {
+	CheckInButton,
+	CheckOutButton,
+} from "@/components/attendance/attendance-buttons";
+import { Clock } from "@/components/clock";
 import { auth } from "@/lib/auth";
-import { Button } from "@repo/ui/components/button";
+import { getUserAttendance } from "@/lib/data/attendance";
+import { Card, CardContent } from "@repo/ui/components/card";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
 	const session = await auth();
 	if (!session) {
-		return (
-			<main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
-				<div className="rounded-2xl bg-white/10 p-8 shadow-xl backdrop-blur-lg">
-					<h1 className="mb-6 text-center text-3xl font-bold text-white">
-						Welcome to Attendance Tracker
-					</h1>
-					<form action={signInAction}>
-						<Button
-							type="submit"
-							className="w-full rounded-lg bg-indigo-600 px-6 py-3 text-white transition-all hover:bg-indigo-700"
-						>
-							Sign in with Discord
-						</Button>
-					</form>
-				</div>
-			</main>
-		);
+		redirect("/api/auth/signin");
 	}
 
+	const attendance = await getUserAttendance();
+
+	const isClockedIn =
+		attendance && attendance.attendanceRecords.at(-1)?.isCheckingIn;
+
 	return (
-		<main className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-8">
-			<div className="mx-auto max-w-2xl">
-				<div className="rounded-2xl bg-white/10 p-8 shadow-xl backdrop-blur-lg">
-					<h1 className="mb-2 text-3xl font-bold text-white">
-						Welcome back,{" "}
-						{session.user.name?.split(" ")[0] || "there"}!
-					</h1>
-					<p className="mb-8 text-gray-300">
-						Track your attendance with ease
-					</p>
-
-					<div className="mb-8">
-						<Clock />
-					</div>
-
-					<div className="flex w-full justify-center gap-4">
-						<form action={userCheckIn} className="space-y-4">
-							<Button type="submit">Clock In</Button>
-						</form>
-						<form action={userCheckOut}>
-							<Button variant="destructive" type="submit">
-								Clock Out
-							</Button>
-						</form>
-					</div>
+		<main className="container mx-auto flex max-w-sm flex-col gap-4">
+			<section>
+				<Card className="bg-yeti-950 gap-0 space-y-0 p-0">
+					<CardContent className="p-0 text-sm">
+						<div className="flex justify-center px-4 py-2">
+							<span className="bg-yeti-900 rounded-full px-2 py-1 text-xs font-medium">
+								{isClockedIn ? "Clocked in" : "Clocked out"}
+							</span>
+						</div>
+						<div className="flex justify-center pb-4 pt-2">
+							<Clock />
+						</div>
+						<div className="bg-yeti-900 flex flex-col gap-2 rounded-b-lg px-4 py-2 text-white">
+							<p className="flex items-center gap-2">
+								Total hours:
+								<span className="text-base font-bold">
+									{attendance?.hours.toFixed(1)}
+								</span>
+							</p>
+						</div>
+					</CardContent>
+				</Card>
+			</section>
+			<section className="flex flex-col gap-2">
+				<div className="flex w-full justify-center gap-2">
+					{isClockedIn ? <CheckOutButton /> : <CheckInButton />}
 				</div>
-			</div>
+			</section>
 		</main>
 	);
 }

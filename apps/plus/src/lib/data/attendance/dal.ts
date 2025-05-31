@@ -56,8 +56,19 @@ export const getUserAttendanceData = async () => {
 	return data.filter((record) => record.discordId === session.user.id);
 };
 
-export const writeAttendanceData = async (data: AttendanceRecord) => {
+export const writeAttendanceData = async (
+	data: Omit<AttendanceRecord, "name" | "discordId">
+) => {
+	const session = await auth();
+	if (!session || !session.user || !session.user.name) {
+		throw new Error("Unauthorized");
+	}
 	const client = getAttendanceClient();
-	await client.write(AttendanceRecordSchema, data);
+	console.log({ data });
+	await client.write(AttendanceRecordSchema, {
+		...data,
+		name: session.user.name,
+		discordId: session.user.id,
+	});
 	revalidateTag("attendance-data");
 };

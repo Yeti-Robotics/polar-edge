@@ -15,12 +15,11 @@ export function Clock() {
 
 	const hours = time.getHours().toString().padStart(2, "0");
 	const minutes = time.getMinutes().toString().padStart(2, "0");
-	const seconds = time.getSeconds().toString().padStart(2, "0");
 
 	return (
 		<div className="text-center">
 			<div className="mb-2 font-mono text-6xl font-bold text-white">
-				{hours}:{minutes}:{seconds}
+				{hours}:{minutes}
 			</div>
 			<div className="font-medium text-gray-400">
 				{time.toLocaleDateString("en-US", {
