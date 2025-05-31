@@ -101,4 +101,50 @@ describe("UserAttendance object", () => {
 		const attendance = new UserAttendance(mockAttendanceData);
 		expect(() => attendance.hours).toThrow("User is already checked in");
 	});
+
+	it("correctly determines if the user is checked in", () => {
+		const mockAttendanceData: AttendanceRecord[] = [
+			{
+				timestamp: "2021-01-01T00:00:00Z",
+				isCheckingIn: true,
+				discordId: "123",
+				name: "Test User",
+			},
+		];
+		const attendance = new UserAttendance(mockAttendanceData);
+		expect(attendance.isCheckedIn).toBe(true);
+		expect(attendance.isCheckedOut).toBe(false);
+	});
+
+	it("correctly determines if the user is checked out", () => {
+		const mockAttendanceData: AttendanceRecord[] = [
+			{
+				timestamp: "2021-01-01T00:00:00Z",
+				isCheckingIn: true,
+				discordId: "123",
+				name: "Test User",
+			},
+			{
+				timestamp: "2021-01-01T01:00:00Z",
+				isCheckingIn: false,
+				discordId: "123",
+				name: "Test User",
+			},
+			{
+				timestamp: "2021-01-01T02:00:00Z",
+				isCheckingIn: true,
+				discordId: "123",
+				name: "Test User",
+			},
+			{
+				timestamp: "2021-01-01T03:00:00Z",
+				isCheckingIn: false,
+				discordId: "123",
+				name: "Test User",
+			},
+		];
+		const attendance = new UserAttendance(mockAttendanceData);
+		expect(attendance.isCheckedIn).toBe(false);
+		expect(attendance.isCheckedOut).toBe(true);
+	});
 });

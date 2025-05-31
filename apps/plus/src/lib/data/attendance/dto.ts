@@ -46,11 +46,7 @@ export class UserAttendance {
 	 * @returns true if the user is checked out, false otherwise
 	 */
 	public get isCheckedOut() {
-		const lastRecord = this.records[this.records.length - 1];
-		if (lastRecord && !lastRecord.isCheckingIn) {
-			return true;
-		}
-		return false;
+		return !this.isCheckedIn;
 	}
 
 	get hours() {
