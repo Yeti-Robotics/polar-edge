@@ -52,7 +52,7 @@ export default async function ProfilePage() {
 							mentor to see if your hours are logged correctly.
 						</p>
 					)}
-					{attendance.value.attendanceRecords.length > 0 && (
+					{attendance.value.records.length > 0 && (
 						<div className="overflow-x-auto rounded-xl border">
 							<Table>
 								<TableHeader>
@@ -62,20 +62,18 @@ export default async function ProfilePage() {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{attendance.value.attendanceRecords.map(
-										(record) => (
-											<TableRow key={record.timestamp}>
-												<TableCell>
-													{record.timestamp}
-												</TableCell>
-												<TableCell>
-													{record.isCheckingIn
-														? "Check in"
-														: "Check out"}
-												</TableCell>
-											</TableRow>
-										)
-									)}
+									{attendance.value.records.map((record) => (
+										<TableRow key={record.timestamp}>
+											<TableCell>
+												{record.timestamp}
+											</TableCell>
+											<TableCell>
+												{record.isCheckingIn
+													? "Check in"
+													: "Check out"}
+											</TableCell>
+										</TableRow>
+									))}
 								</TableBody>
 							</Table>
 						</div>

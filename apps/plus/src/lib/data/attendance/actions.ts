@@ -3,91 +3,102 @@
 import { writeAttendanceData } from "./dal";
 import { getUserAttendance } from "./dto";
 
-import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
-export type AttendanceActionState =
-	| {
-			success: false;
-			error: string;
-	  }
-	| {
-			success: true;
-	  };
-
-export const userCheckIn = async (): Promise<AttendanceActionState> => {
-	const userAttendance = await getUserAttendance();
-	if (!userAttendance) {
-		return {
-			success: false,
-			error: "Failed to retrieve attendance data.",
-		};
-	}
-
-	if (userAttendance.isCheckedIn) {
-		return {
-			success: false,
-			error: "You are already checked in.",
-		};
-	}
-
-	try {
-		await writeAttendanceData({
-			timestamp: new Date().toISOString(),
-			isCheckingIn: true,
-		});
-		revalidatePath("/");
-		return {
-			success: true,
-		};
-	} catch (error) {
-		console.error(error);
-		return {
-			success: false,
-			error: "Failed to check in.",
-		};
-	}
+export type AttendanceActionState = {
+	success: boolean;
+	message?: string;
 };
 
-export const userCheckOut = async (): Promise<AttendanceActionState> => {
-	const session = await auth();
-	if (!session || !session.user) {
-		throw new Error("Unauthorized");
-	}
-	if (!session.user.name) {
-		throw new Error("Please set your name in Discord");
-	}
-
-	const data = await getUserAttendance();
-	if (!data) {
+export async function checkInUser(): Promise<AttendanceActionState> {
+	const attendance = await getUserAttendance();
+	if (!attendance) {
 		return {
 			success: false,
-			error: "Failed to retrieve attendance data.",
+			message: "User not found",
 		};
 	}
 
-	const lastRecord =
-		data.attendanceRecords[data.attendanceRecords.length - 1];
-	const currentTime = new Date();
+	const lastRecord = attendance.records[attendance.records.length - 1];
 
-	if (lastRecord && !lastRecord.isCheckingIn) {
-		throw new Error("User is not checked in.");
-	}
+	if (lastRecord && !attendance.canCheckIn) {
+		const lastTimestamp = new Date(lastRecord.timestamp);
+		const retroactiveCheckOutTimestamp = new Date(
+			lastTimestamp.setHours(lastTimestamp.getHours() + 1.5)
+		);
+		if (retroactiveCheckOutTimestamp > new Date()) {
+			return {
+				success: false,
+				message: "Retroactive check out time is in the future",
+			};
+		}
 
-	try {
 		await writeAttendanceData({
-			timestamp: currentTime.toISOString(),
+			timestamp: retroactiveCheckOutTimestamp.toISOString(),
 			isCheckingIn: false,
 		});
-		revalidatePath("/");
-		return {
-			success: true,
-		};
-	} catch (error) {
-		console.error(error);
+	}
+
+	await writeAttendanceData({
+		timestamp: new Date().toISOString(),
+		isCheckingIn: true,
+	});
+
+	revalidatePath("/");
+
+	return {
+		success: true,
+	};
+}
+
+export async function checkOutUser(): Promise<AttendanceActionState> {
+	const attendance = await getUserAttendance();
+	if (!attendance) {
 		return {
 			success: false,
-			error: "Failed to check out.",
+			message: "User not found",
 		};
 	}
-};
+
+	const lastRecord = attendance.records[attendance.records.length - 1];
+
+	if (lastRecord && !attendance.isCheckedIn) {
+		const lastTimestamp = new Date(lastRecord.timestamp);
+		const retroactiveCheckInTimestamp = new Date(
+			lastTimestamp.getTime() - 1.5 * 60 * 60 * 1000
+		);
+
+		if (retroactiveCheckInTimestamp < lastTimestamp) {
+			return {
+				success: false,
+				message:
+					"Retroactive check in time would be before your last check out",
+			};
+		}
+
+		await writeAttendanceData({
+			timestamp: retroactiveCheckInTimestamp.toISOString(),
+			isCheckingIn: true,
+		});
+		console.log("=== wrote retroactive check in");
+	} else if (!lastRecord) {
+		const retroactiveCheckInTimestamp = new Date(
+			new Date().getTime() - 1.5 * 60 * 60 * 1000
+		);
+		await writeAttendanceData({
+			timestamp: retroactiveCheckInTimestamp.toISOString(),
+			isCheckingIn: true,
+		});
+	}
+
+	await writeAttendanceData({
+		timestamp: new Date().toISOString(),
+		isCheckingIn: false,
+	});
+
+	revalidatePath("/");
+
+	return {
+		success: true,
+	};
+}
