@@ -16,8 +16,7 @@ export default async function Home() {
 
 	const attendance = await getUserAttendance();
 
-	const isClockedIn =
-		attendance && attendance.attendanceRecords.at(-1)?.isCheckingIn;
+	const isClockedIn = attendance && attendance.records.at(-1)?.isCheckingIn;
 
 	return (
 		<main className="container mx-auto flex max-w-sm flex-col gap-4">
@@ -45,7 +44,8 @@ export default async function Home() {
 			</section>
 			<section className="flex flex-col gap-2">
 				<div className="flex w-full justify-center gap-2">
-					{isClockedIn ? <CheckOutButton /> : <CheckInButton />}
+					<CheckInButton />
+					<CheckOutButton />
 				</div>
 			</section>
 		</main>

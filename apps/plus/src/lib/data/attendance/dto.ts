@@ -6,10 +6,10 @@ import { getUserAttendanceData } from "@/lib/data/attendance/dal";
 import { cache } from "react";
 
 export class UserAttendance {
-	private records: Omit<AttendanceRecord, "name" | "discordId">[];
+	private userRecords: Omit<AttendanceRecord, "name" | "discordId">[];
 
 	constructor(records: AttendanceRecord[]) {
-		this.records = records
+		this.userRecords = records
 			.map((record) => ({
 				timestamp: record.timestamp,
 				isCheckingIn: record.isCheckingIn,
@@ -34,7 +34,7 @@ export class UserAttendance {
 	 * @returns true if the user is checked in, false otherwise
 	 */
 	public get isCheckedIn() {
-		const lastRecord = this.records[this.records.length - 1];
+		const lastRecord = this.userRecords[this.userRecords.length - 1];
 		if (lastRecord && lastRecord.isCheckingIn) {
 			return true;
 		}
@@ -49,10 +49,10 @@ export class UserAttendance {
 		return !this.isCheckedIn;
 	}
 
-	get hours() {
+	public get hours() {
 		// attempt to reduce into an hour total
 		// if duplicate check in/out, throw an error
-		return this.records.reduce<{ in: null | Date; hours: number }>(
+		return this.userRecords.reduce<{ in: null | Date; hours: number }>(
 			(acc, curr) => {
 				if (curr.isCheckingIn && !acc.in) {
 					acc.in = new Date(curr.timestamp);
@@ -75,8 +75,20 @@ export class UserAttendance {
 		).hours;
 	}
 
-	get attendanceRecords() {
-		return this.records;
+	public get records() {
+		return this.userRecords;
+	}
+
+	/**
+	 * Checks if the user can check in
+	 * @returns true if the user can check in, false otherwise
+	 */
+	public get canCheckIn() {
+		const lastRecord = this.userRecords[this.userRecords.length - 1];
+		if (lastRecord && lastRecord.isCheckingIn) {
+			return false;
+		}
+		return true;
 	}
 }
 
