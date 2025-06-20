@@ -11,7 +11,9 @@
     "lint:fix": "turbo run lint:fix",
     "test": "turbo run test",
     "release": "pnpm build --filter=./packages/* && changeset publish",
-    "dev:scouting": "turbo run dev --filter=@app/web"
+    "dev:scouting": "turbo run dev --filter=@app/web",
+    "dev:scouting:attendance": "pnpm turbo run dev --filter=@app/web --filter=@app/plus",
+    "dev:attendance": "pnpm turbo run dev --filter=@app/plus"
   },
   "devDependencies": {
     "prettier": "^3.4.2",
