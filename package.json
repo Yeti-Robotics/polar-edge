@@ -15,10 +15,10 @@
     "dev:attendance": "pnpm turbo run dev --filter=@app/plus"
   },
   "devDependencies": {
-    "prettier": "^3.4.2",
-    "prettier-plugin-tailwindcss": "^0.6.11",
+    "prettier": "^3.6.1",
+    "prettier-plugin-tailwindcss": "^0.6.13",
     "turbo": "latest",
-    "typescript": "^5.7.3"
+    "typescript": "^5.8.3"
   },
   "workspaces": [
     "apps/*",
@@ -26,7 +26,7 @@
   ],
   "packageManager": "pnpm@10.10.0",
   "dependencies": {
-    "@changesets/cli": "^2.28.1"
+    "@changesets/cli": "^2.29.5"
   },
   "resolutions": {
     "@babel/core": "7.26.10",
