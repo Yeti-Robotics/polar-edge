@@ -71,7 +71,7 @@
 				".env.development",
 				".env"
 			],
-			"dependsOn": ["^db:start"]
+			"dependsOn": ["db:start"]
 		}
 	}
 }
