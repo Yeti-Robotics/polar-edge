@@ -92,10 +92,10 @@ export class AttendanceService {
   public async getAttendance(
     discordId: string,
   ): Promise<z.infer<typeof AttendanceSchema>[]> {
-    const attendance = (await this.sheetService.getSheetValues(
+    const attendance = await this.sheetService.getSheetValues(
       this.attendanceSheetId,
       `Attendance!A:E`,
-    )) as unknown[][];
+    );
 
     if (!attendance) {
       return [];

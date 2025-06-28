@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Context, SlashCommand, SlashCommandContext } from 'necord';
 import { AttendanceService } from '../data/attendance/attendance.service';
+import { OutreachService } from 'src/data/outreach/outreach.service';
 import { ChatInputCommandInteraction } from 'discord.js';
 
 @Injectable()
 export class BotCommands {
-  constructor(private readonly attendanceService: AttendanceService) {}
+  constructor(
+    private readonly attendanceService: AttendanceService,
+    private readonly outreachService: OutreachService,
+  ) {}
 
   private async getNickname(interaction: ChatInputCommandInteraction) {
     const member = await interaction.guild?.members.fetch(interaction.user.id);
@@ -67,5 +71,43 @@ export class BotCommands {
     } else {
       return interaction.reply(result.message);
     }
+  }
+
+  @SlashCommand({
+    name: 'outreach',
+    description: 'Get outreach for a user',
+  })
+  public async onOutreach(@Context() [interaction]: SlashCommandContext) {
+    const nickname = await this.getNickname(interaction);
+
+    if (!nickname) {
+      return interaction.reply('You must have a nickname set to get outreach');
+    }
+
+    const outreach = await this.outreachService.getUserOutreach(nickname);
+
+    if (!outreach) {
+      return interaction.reply('No outreach found for you');
+    }
+
+    const hourTotal = outreach.reduce((acc, curr) => acc + curr.hours, 0);
+
+    let outreachString = `:snowflake: Outreach for ${nickname} :snowflake:\n\n**Total hours:** ${hourTotal}`;
+
+    if (hourTotal < 50) {
+      outreachString += `\n- You need ${50 - hourTotal} more hours to reach the rookie minimum (${Math.round(
+        (100 * hourTotal) / 50,
+      )}% complete)\n- You need ${100 - hourTotal} more hours to reach the veteran minimum (${Math.round(
+        (100 * hourTotal) / 100,
+      )}% complete)`;
+    } else if (hourTotal < 100) {
+      outreachString += `\n- ✅ Rookie minimum achieved!\n- You need ${100 - hourTotal} more hours to reach the veteran minimum (${Math.round(
+        (100 * hourTotal) / 100,
+      )}% complete)`;
+    } else {
+      outreachString += `\n- 🎉 Veteran minimum achieved! Great work!`;
+    }
+
+    return interaction.reply(outreachString);
   }
 }
