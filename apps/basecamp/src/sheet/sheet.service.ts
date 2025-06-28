@@ -24,7 +24,9 @@ export class SheetService {
       ).toString('utf-8'),
     ) as SheetCredentials;
 
-    const auth = new google.auth.GoogleAuth({ credentials });
+    const scopes = ['https://www.googleapis.com/auth/spreadsheets'];
+
+    const auth = new google.auth.GoogleAuth({ credentials, scopes });
     this.sheetsClient = google.sheets({ version: 'v4', auth });
   }
 
@@ -38,7 +40,7 @@ export class SheetService {
       return res.data.values;
     } catch (error) {
       this.logger.error(`Failed to get values from sheet: ${error}`);
-      throw new Error('Failed to get values from sheet');
+      return [];
     }
   }
 
