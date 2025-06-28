@@ -30,7 +30,10 @@ export class SheetService {
     this.sheetsClient = google.sheets({ version: 'v4', auth });
   }
 
-  async getSheetValues(spreadsheetId: string, range: string) {
+  async getSheetValues(
+    spreadsheetId: string,
+    range: string,
+  ): Promise<unknown[][] | undefined | null> {
     try {
       const res = await this.sheetsClient.spreadsheets.values.get({
         spreadsheetId,
