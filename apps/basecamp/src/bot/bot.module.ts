@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { NecordModule } from 'necord';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { IntentsBitField } from 'discord.js';
 import { BotCommands } from './bot.commands';
+import { DataModule } from '../data/data.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
     NecordModule.forRootAsync({
       useFactory: (configService: ConfigService) => {
         const token = configService.get<string>('DISCORD_TOKEN');
@@ -22,6 +22,7 @@ import { BotCommands } from './bot.commands';
       },
       inject: [ConfigService],
     }),
+    DataModule,
   ],
   providers: [BotCommands],
 })
