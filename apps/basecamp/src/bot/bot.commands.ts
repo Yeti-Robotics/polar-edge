@@ -24,7 +24,6 @@ export class BotCommands {
   @SlashCommand({
     name: 'signin',
     description: 'Sign in to the server',
-    dmPermission: true,
   })
   public async onSignIn(@Context() [interaction]: SlashCommandContext) {
     const nickname = await this.getNickname(interaction);
@@ -35,11 +34,36 @@ export class BotCommands {
 
     const result = await this.attendanceService.signIn(
       interaction.user.id,
+      interaction.guild?.id || '',
       nickname,
     );
 
     if (result.success) {
       return interaction.reply('Signed in successfully');
+    } else {
+      return interaction.reply(result.message);
+    }
+  }
+
+  @SlashCommand({
+    name: 'signout',
+    description: 'Sign out of the server',
+  })
+  public async onSignOut(@Context() [interaction]: SlashCommandContext) {
+    const nickname = await this.getNickname(interaction);
+
+    if (!nickname) {
+      return interaction.reply('You must have a nickname to sign out');
+    }
+
+    const result = await this.attendanceService.signOut(
+      interaction.user.id,
+      interaction.guildId || '',
+      nickname,
+    );
+
+    if (result.success) {
+      return interaction.reply('Signed out successfully');
     } else {
       return interaction.reply(result.message);
     }

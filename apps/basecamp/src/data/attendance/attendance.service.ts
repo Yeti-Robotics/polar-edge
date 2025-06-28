@@ -5,6 +5,7 @@ import z from 'zod';
 
 const AttendanceSchema = z.object({
   discordId: z.string(),
+  team: z.string(),
   discordName: z.string(),
   date: z.string(),
   isSigningIn: z.boolean(),
@@ -42,11 +43,25 @@ export class AttendanceService {
   private async performAttendanceOperation(
     discordId: string,
     discordName: string,
+    guildId: string,
     operation: 'signIn' | 'signOut',
     date: Date = new Date(),
   ): Promise<boolean> {
+    let team = '';
+    switch (guildId) {
+      case this.configService.get<string>('YETI_SERVER_ID'):
+        team = 'YETI Robotics';
+        break;
+      case this.configService.get<string>('DEV_GUILD_ID'):
+        team = 'Dev';
+        break;
+    }
+
+    console.log(guildId, this.configService.get<string>('YETI_SERVER_ID'));
+
     const attendance = AttendanceSchema.parse({
       discordId,
+      team,
       discordName,
       date: date.toISOString(),
       isSigningIn: operation === 'signIn',
@@ -57,8 +72,8 @@ export class AttendanceService {
         this.attendanceSheetId,
         'Attendance!A:D',
         [
-          ['discordId', 'discordName', 'date', 'isSigningIn'].map((value) =>
-            attendance[value as keyof typeof attendance].toString(),
+          ['discordId', 'team', 'discordName', 'date', 'isSigningIn'].map(
+            (value) => attendance[value as keyof typeof attendance].toString(),
           ),
         ],
       );
@@ -79,7 +94,7 @@ export class AttendanceService {
   ): Promise<z.infer<typeof AttendanceSchema>[]> {
     const attendance = (await this.sheetService.getSheetValues(
       this.attendanceSheetId,
-      `Attendance!A:D`,
+      `Attendance!A:E`,
     )) as unknown[][];
 
     if (!attendance) {
@@ -91,15 +106,17 @@ export class AttendanceService {
     return userAttendance.map((row) => {
       return AttendanceSchema.parse({
         discordId: row[0],
-        discordName: row[1],
-        date: row[2],
-        isSigningIn: row[3] === 'true',
+        team: row[1],
+        discordName: row[2],
+        date: row[3],
+        isSigningIn: row[4] === 'true' || row[4] === 'TRUE',
       });
     });
   }
 
   public async signIn(
     discordId: string,
+    guildId: string,
     discordName: string,
   ): Promise<AttendanceOperationResult> {
     const existingAttendance = await this.getAttendance(discordId);
@@ -120,6 +137,7 @@ export class AttendanceService {
           await this.performAttendanceOperation(
             discordId,
             discordName,
+            guildId,
             'signOut',
             new Date(currentDate.getTime() - 1000 * 60 * 60 * 1.5),
           );
@@ -134,7 +152,12 @@ export class AttendanceService {
     }
 
     try {
-      await this.performAttendanceOperation(discordId, discordName, 'signIn');
+      await this.performAttendanceOperation(
+        discordId,
+        discordName,
+        guildId,
+        'signIn',
+      );
       return {
         success: true,
       };
@@ -149,6 +172,7 @@ export class AttendanceService {
 
   public async signOut(
     discordId: string,
+    guildId: string,
     discordName: string,
   ): Promise<AttendanceOperationResult> {
     const existingAttendance = await this.getAttendance(discordId);
@@ -168,6 +192,7 @@ export class AttendanceService {
         await this.performAttendanceOperation(
           discordId,
           discordName,
+          guildId,
           'signIn',
           new Date(new Date().getTime() - 1000 * 60 * 60 * 1.5),
         );
@@ -181,7 +206,12 @@ export class AttendanceService {
     }
 
     try {
-      await this.performAttendanceOperation(discordId, discordName, 'signOut');
+      await this.performAttendanceOperation(
+        discordId,
+        discordName,
+        guildId,
+        'signOut',
+      );
       return {
         success: true,
       };
