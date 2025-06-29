@@ -29,8 +29,11 @@ WORKDIR /usr/src/app
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
-USER nestjs
 
+# Copy the built application and node_modules
 COPY --from=installer --chown=nestjs:nodejs /usr/src/app/apps/basecamp/dist ./dist
+COPY --from=installer --chown=nestjs:nodejs /usr/src/app/node_modules ./node_modules
+
+USER nestjs
 
 CMD ["node", "dist/main"]
