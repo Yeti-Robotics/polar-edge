@@ -1,39 +1,30 @@
-FROM node:22-alpine AS base
-
-FROM base AS builder
-RUN apk add --no-cache libc6-compat
+FROM node:22-alpine AS builder
 RUN apk update
-# Set working directory
-WORKDIR /usr/src/app
-RUN npm i -g turbo
+
+WORKDIR /app
+RUN corepack enable pnpm
 COPY . .
+RUN pnpm dlx turbo prune basecamp --docker
 
-RUN turbo prune basecamp --docker
-
-FROM base AS installer
-RUN apk add --no-cache libc6-compat
+FROM node:22-alpine AS installer
 RUN apk update
-WORKDIR /usr/src/app
 
-COPY --from=builder /usr/src/app/out/json/ .
-COPY --from=builder /usr/src/app/out/pnpm-lock.yaml ./pnpm-lock.yaml
-RUN corepack enable
+WORKDIR /app
+COPY --from=builder /app/out/json/ .
+COPY --from=builder /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/turbo.json ./turbo.json
+RUN corepack enable pnpm
 RUN pnpm install --frozen-lockfile
 
-COPY --from=builder /usr/src/app/out/full/ .
+FROM node:22-alpine AS sourcer
+WORKDIR /app
+COPY --from=installer /app/ .
+COPY --from=builder /app/out/full/ .
+RUN corepack enable pnpm
 RUN pnpm dlx turbo run build --filter=basecamp
 
-FROM base AS runner
-WORKDIR /usr/src/app
+FROM node:22-alpine AS runner
+WORKDIR /app
+COPY --from=sourcer /app/ .
 
-# Create a non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nestjs
-
-# Copy the built application and node_modules
-COPY --from=installer --chown=nestjs:nodejs /usr/src/app/apps/basecamp/dist ./dist
-COPY --from=installer --chown=nestjs:nodejs /usr/src/app/node_modules ./node_modules
-
-USER nestjs
-
-CMD ["node", "dist/main"]
+CMD ["node", "apps/basecamp/dist/main.js"]
