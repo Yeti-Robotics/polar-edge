@@ -108,6 +108,9 @@ export class BotCommands {
       outreachString += `\n- 🎉 Veteran minimum achieved! Great work!`;
     }
 
+    outreachString +=
+      '\n*Please reach out to Ms. I in the <#408795997410426880> if you feel our record of your outreach is incorrect*';
+
     return interaction.reply(outreachString);
   }
 }
