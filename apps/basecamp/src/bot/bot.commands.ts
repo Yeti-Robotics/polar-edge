@@ -27,7 +27,7 @@ export class BotCommands {
 
   @SlashCommand({
     name: 'signin',
-    description: 'Sign in to the server',
+    description: 'Sign in to a YETI meeting at the zone',
   })
   public async onSignIn(@Context() [interaction]: SlashCommandContext) {
     const nickname = await this.getNickname(interaction);
@@ -51,7 +51,7 @@ export class BotCommands {
 
   @SlashCommand({
     name: 'signout',
-    description: 'Sign out of the server',
+    description: 'Sign out of a YETI meeting at the zone',
   })
   public async onSignOut(@Context() [interaction]: SlashCommandContext) {
     const nickname = await this.getNickname(interaction);
@@ -75,7 +75,7 @@ export class BotCommands {
 
   @SlashCommand({
     name: 'outreach',
-    description: 'Get outreach for a user',
+    description: 'Get your current outreach progress',
   })
   public async onOutreach(@Context() [interaction]: SlashCommandContext) {
     const nickname = await this.getNickname(interaction);
@@ -112,5 +112,49 @@ export class BotCommands {
       '\n*Please reach out to Ms. I in the <#408795997410426880> if you feel our record of your outreach is incorrect*';
 
     return interaction.reply(outreachString);
+  }
+
+  @SlashCommand({
+    name: 'leaderboard',
+    description: 'Show the top 5 members by outreach hours',
+  })
+  public async onLeaderboard(@Context() [interaction]: SlashCommandContext) {
+    const leaderboard = await this.outreachService.getTopMembersByHours(5);
+
+    if (!leaderboard || leaderboard.length === 0) {
+      return interaction.reply('No outreach data found');
+    }
+
+    let leaderboardString = ':trophy: **Outreach Leaderboard** :trophy:\n\n';
+
+    leaderboard.forEach((entry, index) => {
+      const rank = index + 1;
+      let prefix = '';
+
+      // Medal emojis for top 3, numbers for 4th and 5th
+      switch (rank) {
+        case 1:
+          prefix = ':first_place_medal:';
+          break;
+        case 2:
+          prefix = ':second_place_medal:';
+          break;
+        case 3:
+          prefix = ':third_place_medal:';
+          break;
+        case 4:
+          prefix = '4.';
+          break;
+        case 5:
+          prefix = '5.';
+          break;
+      }
+
+      leaderboardString += `${prefix} **${entry.userName}** - ${entry.totalHours} hours\n`;
+    });
+
+    leaderboardString += '\n*Updated in real-time from outreach records*';
+
+    return interaction.reply(leaderboardString);
   }
 }
