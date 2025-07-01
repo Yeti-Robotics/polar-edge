@@ -8,6 +8,7 @@ describe('OutreachService', () => {
   let sheetService: jest.Mocked<SheetService>;
 
   const mockSheetData = [
+    ['Date', 'Name', 'Event', 'Type', 'Hours'],
     ['2024-01-01', 'John Doe', 'Event 1', 'Workshop', '10'],
     ['2024-01-02', 'Jane Smith', 'Event 2', 'Competition', '15'],
     ['2024-01-03', 'John Doe', 'Event 3', 'Workshop', '5'],
@@ -129,6 +130,7 @@ describe('OutreachService', () => {
 
     it('should handle single user with multiple entries correctly', async () => {
       const singleUserData = [
+        ['Date', 'Name', 'Event', 'Type', 'Hours'],
         ['2024-01-01', 'John Doe', 'Event 1', 'Workshop', '10'],
         ['2024-01-02', 'John Doe', 'Event 2', 'Competition', '15'],
         ['2024-01-03', 'John Doe', 'Event 3', 'Workshop', '5'],
@@ -143,6 +145,7 @@ describe('OutreachService', () => {
 
     it('should handle users with same total hours correctly', async () => {
       const tiedData = [
+        ['Date', 'Name', 'Event', 'Type', 'Hours'],
         ['2024-01-01', 'User A', 'Event 1', 'Workshop', '10'],
         ['2024-01-02', 'User B', 'Event 2', 'Competition', '10'],
         ['2024-01-03', 'User C', 'Event 3', 'Workshop', '10'],
@@ -182,6 +185,7 @@ describe('OutreachService', () => {
 
     it('should correctly sum hours for users with multiple entries', async () => {
       const multipleEntriesData = [
+        ['Date', 'Name', 'Event', 'Type', 'Hours'],
         ['2024-01-01', 'John Doe', 'Event 1', 'Workshop', '5'],
         ['2024-01-02', 'John Doe', 'Event 2', 'Competition', '10'],
         ['2024-01-03', 'John Doe', 'Event 3', 'Workshop', '15'],
