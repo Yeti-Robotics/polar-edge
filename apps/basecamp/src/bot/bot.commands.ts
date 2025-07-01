@@ -1,15 +1,75 @@
-import { Injectable } from '@nestjs/common';
-import { Context, SlashCommand, SlashCommandContext } from 'necord';
+import { Injectable, Logger } from '@nestjs/common';
+import { Context, Options, SlashCommand, SlashCommandContext } from 'necord';
 import { AttendanceService } from '../data/attendance/attendance.service';
 import { OutreachService } from 'src/data/outreach/outreach.service';
 import { ChatInputCommandInteraction } from 'discord.js';
+import { HandbookService } from 'src/handbook/handbook.service';
+import { HandbookQuestionDto } from 'src/handbook/handbook-question.dto';
+
+interface RateLimitConfig {
+  maxRequests: number;
+  windowMs: number;
+  message: string;
+}
 
 @Injectable()
 export class BotCommands {
+  private readonly logger = new Logger(BotCommands.name);
+
+  // Global rate limiting
+  private readonly globalRequests: number[] = [];
+  private readonly globalRateLimit: RateLimitConfig = {
+    maxRequests: 2, // 10 requests per minute
+    windowMs: 60000, // 1 minute
+    message:
+      '🌐 The handbook is currently busy. Please try again in {time} seconds.',
+  };
   constructor(
     private readonly attendanceService: AttendanceService,
     private readonly outreachService: OutreachService,
-  ) {}
+    private readonly handbookService: HandbookService,
+  ) {
+    // Clean up old requests periodically
+    setInterval(() => this.cleanupRequests(), 30000); // Every 30 seconds
+  }
+
+  private cleanupRequests() {
+    const now = Date.now();
+
+    // Clean global requests
+    while (
+      this.globalRequests.length > 0 &&
+      now - this.globalRequests[0] > this.globalRateLimit.windowMs
+    ) {
+      this.globalRequests.shift();
+    }
+  }
+
+  private checkRateLimit(
+    requests: number[],
+    config: RateLimitConfig,
+  ): { limited: boolean; waitTime?: number } {
+    const now = Date.now();
+
+    // Remove old requests
+    while (requests.length > 0 && now - requests[0] > config.windowMs) {
+      requests.shift();
+    }
+
+    if (requests.length >= config.maxRequests) {
+      const oldestRequest = requests[0];
+      const waitTime = Math.ceil(
+        (oldestRequest + config.windowMs - now) / 1000,
+      );
+      return { limited: true, waitTime };
+    }
+
+    return { limited: false };
+  }
+
+  private addRequest(requests: number[]) {
+    requests.push(Date.now());
+  }
 
   private async getNickname(interaction: ChatInputCommandInteraction) {
     const member = await interaction.guild?.members.fetch(interaction.user.id);
@@ -156,5 +216,58 @@ export class BotCommands {
     leaderboardString += '\n*Updated in real-time from outreach records*';
 
     return interaction.reply(leaderboardString);
+  }
+
+  @SlashCommand({
+    name: 'handbook',
+    description: 'Ask the handbook a question',
+  })
+  public async onHandbook(
+    @Context() [interaction]: SlashCommandContext,
+    @Options() { question }: HandbookQuestionDto,
+  ) {
+    const userId = interaction.user.id;
+
+    // Check global rate limit
+    const globalLimit = this.checkRateLimit(
+      this.globalRequests,
+      this.globalRateLimit,
+    );
+    if (globalLimit.limited) {
+      this.logger.warn(`Global rate limit reached. User ${userId} blocked.`);
+      return interaction.reply({
+        content: this.globalRateLimit.message.replace(
+          '{time}',
+          globalLimit.waitTime!.toString(),
+        ),
+        ephemeral: true,
+      });
+    }
+
+    if (!question) {
+      return interaction.reply('Please provide a question to ask the handbook');
+    }
+
+    // Add requests to both counters
+    this.addRequest(this.globalRequests);
+
+    this.logger.log(
+      `Handbook request from user ${userId}: ${question.substring(0, 50)}...`,
+    );
+
+    try {
+      const response = await this.handbookService.askHandbookQuestion(question);
+
+      if (!response) {
+        return interaction.reply(
+          'Failed to get a response from the handbook agent.',
+        );
+      }
+
+      return interaction.reply(`Question: ${question}\n\nAnswer: ${response}`);
+    } catch (error) {
+      this.logger.error(`Handbook request failed for user ${userId}:`, error);
+      throw error;
+    }
   }
 }
