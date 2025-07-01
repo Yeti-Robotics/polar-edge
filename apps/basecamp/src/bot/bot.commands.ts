@@ -109,7 +109,7 @@ export class BotCommands {
     }
 
     outreachString +=
-      '\n*Please reach out to Ms. I in the <#408795997410426880> if you feel our record of your outreach is incorrect*';
+      '\n*Please reach out to Ms. I in <#408795997410426880> if you feel our record of your outreach is incorrect*';
 
     return interaction.reply(outreachString);
   }
