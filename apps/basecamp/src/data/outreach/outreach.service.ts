@@ -70,7 +70,7 @@ export class OutreachService {
       }
 
       // Parse all outreach data
-      const outreachData = sheet.map((row) =>
+      const outreachData = sheet.slice(1).map((row) =>
         OutreachColumnSchema.parse({
           date: row[0],
           userName: row[1],
