@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { IntentsBitField } from 'discord.js';
 import { BotCommands } from './bot.commands';
 import { DataModule } from '../data/data.module';
+import { HandbookModule } from '../handbook/handbook.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { DataModule } from '../data/data.module';
       inject: [ConfigService],
     }),
     DataModule,
+    HandbookModule,
   ],
   providers: [BotCommands],
 })
