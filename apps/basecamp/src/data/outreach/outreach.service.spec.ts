@@ -5,6 +5,16 @@ import { ConfigService } from '@nestjs/config';
 
 describe('OutreachService', () => {
   let service: OutreachService;
+  let sheetService: jest.Mocked<SheetService>;
+
+  const mockSheetData = [
+    ['2024-01-01', 'John Doe', 'Event 1', 'Workshop', '10'],
+    ['2024-01-02', 'Jane Smith', 'Event 2', 'Competition', '15'],
+    ['2024-01-03', 'John Doe', 'Event 3', 'Workshop', '5'],
+    ['2024-01-04', 'Bob Johnson', 'Event 4', 'Outreach', '20'],
+    ['2024-01-05', 'Jane Smith', 'Event 5', 'Workshop', '8'],
+    ['2024-01-06', 'Alice Brown', 'Event 6', 'Competition', '12'],
+  ];
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -13,7 +23,7 @@ describe('OutreachService', () => {
         {
           provide: SheetService,
           useValue: {
-            getSheetValues: jest.fn().mockReturnValue([]),
+            getSheetValues: jest.fn(),
           },
         },
         {
@@ -26,9 +36,167 @@ describe('OutreachService', () => {
     }).compile();
 
     service = module.get<OutreachService>(OutreachService);
+    sheetService = module.get(SheetService);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('getUserOutreach', () => {
+    it('should return user outreach data when valid data exists', async () => {
+      sheetService.getSheetValues.mockResolvedValue(mockSheetData);
+
+      const result = await service.getUserOutreach('John Doe');
+
+      expect(result).toEqual([
+        {
+          date: '2024-01-01',
+          userName: 'John Doe',
+          event: 'Event 1',
+          eventType: 'Workshop',
+          hours: 10,
+        },
+        {
+          date: '2024-01-03',
+          userName: 'John Doe',
+          event: 'Event 3',
+          eventType: 'Workshop',
+          hours: 5,
+        },
+      ]);
+    });
+
+    it('should return null when no data exists', async () => {
+      sheetService.getSheetValues.mockResolvedValue(null);
+
+      const result = await service.getUserOutreach('John Doe');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when user has no outreach', async () => {
+      sheetService.getSheetValues.mockResolvedValue(mockSheetData);
+
+      const result = await service.getUserOutreach('NonExistentUser');
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getTopMembersByHours', () => {
+    it('should return top 5 members sorted by total hours in descending order', async () => {
+      sheetService.getSheetValues.mockResolvedValue(mockSheetData);
+
+      const result = await service.getTopMembersByHours(5);
+
+      expect(result).toEqual([
+        { userName: 'Jane Smith', totalHours: 23 },
+        { userName: 'Bob Johnson', totalHours: 20 },
+        { userName: 'John Doe', totalHours: 15 },
+        { userName: 'Alice Brown', totalHours: 12 },
+      ]);
+    });
+
+    it('should return top 3 members when limit is 3', async () => {
+      sheetService.getSheetValues.mockResolvedValue(mockSheetData);
+
+      const result = await service.getTopMembersByHours(3);
+
+      expect(result).toHaveLength(3);
+      expect(result).toEqual([
+        { userName: 'Jane Smith', totalHours: 23 },
+        { userName: 'Bob Johnson', totalHours: 20 },
+        { userName: 'John Doe', totalHours: 15 },
+      ]);
+    });
+
+    it('should return empty array when no data exists', async () => {
+      sheetService.getSheetValues.mockResolvedValue(null);
+
+      const result = await service.getTopMembersByHours(5);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array when sheet data is empty', async () => {
+      sheetService.getSheetValues.mockResolvedValue([]);
+
+      const result = await service.getTopMembersByHours(5);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should handle single user with multiple entries correctly', async () => {
+      const singleUserData = [
+        ['2024-01-01', 'John Doe', 'Event 1', 'Workshop', '10'],
+        ['2024-01-02', 'John Doe', 'Event 2', 'Competition', '15'],
+        ['2024-01-03', 'John Doe', 'Event 3', 'Workshop', '5'],
+      ];
+
+      sheetService.getSheetValues.mockResolvedValue(singleUserData);
+
+      const result = await service.getTopMembersByHours(5);
+
+      expect(result).toEqual([{ userName: 'John Doe', totalHours: 30 }]);
+    });
+
+    it('should handle users with same total hours correctly', async () => {
+      const tiedData = [
+        ['2024-01-01', 'User A', 'Event 1', 'Workshop', '10'],
+        ['2024-01-02', 'User B', 'Event 2', 'Competition', '10'],
+        ['2024-01-03', 'User C', 'Event 3', 'Workshop', '10'],
+      ];
+
+      sheetService.getSheetValues.mockResolvedValue(tiedData);
+
+      const result = await service.getTopMembersByHours(3);
+
+      expect(result).toHaveLength(3);
+      expect(result.every((entry) => entry.totalHours === 10)).toBe(true);
+    });
+
+    it('should return default limit of 5 when no limit is specified', async () => {
+      sheetService.getSheetValues.mockResolvedValue(mockSheetData);
+
+      const result = await service.getTopMembersByHours();
+
+      expect(result).toHaveLength(4); // Only 4 unique users in mock data
+      expect(result).toEqual([
+        { userName: 'Jane Smith', totalHours: 23 },
+        { userName: 'Bob Johnson', totalHours: 20 },
+        { userName: 'John Doe', totalHours: 15 },
+        { userName: 'Alice Brown', totalHours: 12 },
+      ]);
+    });
+
+    it('should handle error gracefully and return empty array', async () => {
+      sheetService.getSheetValues.mockRejectedValue(
+        new Error('Sheet API error'),
+      );
+
+      const result = await service.getTopMembersByHours(5);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should correctly sum hours for users with multiple entries', async () => {
+      const multipleEntriesData = [
+        ['2024-01-01', 'John Doe', 'Event 1', 'Workshop', '5'],
+        ['2024-01-02', 'John Doe', 'Event 2', 'Competition', '10'],
+        ['2024-01-03', 'John Doe', 'Event 3', 'Workshop', '15'],
+        ['2024-01-04', 'Jane Smith', 'Event 4', 'Outreach', '8'],
+        ['2024-01-05', 'Jane Smith', 'Event 5', 'Workshop', '12'],
+      ];
+
+      sheetService.getSheetValues.mockResolvedValue(multipleEntriesData);
+
+      const result = await service.getTopMembersByHours(5);
+
+      expect(result).toEqual([
+        { userName: 'John Doe', totalHours: 30 },
+        { userName: 'Jane Smith', totalHours: 20 },
+      ]);
+    });
   });
 });
