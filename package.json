@@ -16,7 +16,7 @@
     "dev:attendance": "pnpm turbo run dev --filter=@app/plus"
   },
   "devDependencies": {
-    "prettier": "^3.6.1",
+    "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.13",
     "turbo": "latest",
     "typescript": "^5.8.3"
